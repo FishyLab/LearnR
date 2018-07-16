@@ -1,0 +1,181 @@
+---
+title: "Equilibrium in the Logistic Growth Model"
+author: "Juan Carlos Villaseñor-Derbez"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r}
+suppressPackageStartupMessages({
+  library(tidyverse)
+})
+```
+
+
+# The model
+
+The logistic growth model is given by:
+
+$$N_{t + 1} = N_t + rN_t\left(1 - \frac{N_t}{K}\right) - cN_t$$
+
+Where $N_t$ denotes population time (biomass or abundance) at time $t$, $r$ represents population growth rate, $K$ the carrying capacity and $c$ a catch rate. From these parameters, $r$ has to be a number different from zero ($r \neq 0$), $c$ has to lie between 0 and 1 ($c \exists (0, 1)$), and $K$ is a positive number ($K > 0$ ).
+
+# Equilibrium without harvesting
+
+When $c = 0$, we have a population without any havesting, and so there are two possible equilibrium points, which we derive as follows:
+
+Let $N^*$ denote the equilibrium density or biomass, so that the equation above becomes:
+
+$$N^* = N^* + rN^*\left(1 - \frac{N^*}{K}\right)$$
+
+Note then, that as time progresses, $N^*$ remains the same. Also, note that the $-cN_t$ term has been dropped to ignore harvest for now.
+
+From above, we see that both sides are the same. Just as $a = a$ can be rewritten as $0 = a - $, we rewrite the above equation as:
+
+$$N^* + rN^*\left(1 - \frac{N^*}{K}\right) - N^* = 0$$
+The single $N^*$ terms cancel each other out, leaving us with:
+
+$$rN^*\left(1 - \frac{N^*}{K}\right) = 0$$
+
+We have the multiplication of $rN^*$ and $1 - \frac{N^*}{K}$, so one of them has to be zero for their product to be zero. Having $rN^* = 0$ is a trivial solution because since $r \neq 0$, it implies that population $N = 0$. (This is like saying that if there's no population, it's stable equilibrium is 0... wel of course). An alternative is that $1 - \frac{N^*}{K} = 0$, so we'll go with that.
+
+$$
+\begin{split}
+1 - \frac{N^*}{K} &= 0 \\
+- \frac{N^*}{K} &= -1 \\
+\frac{N^*}{K} &= 1 \\
+N^* &= K
+\end{split}
+$$
+
+Out math suggests that the equilibrium of the model lies at $N^* = 0$ and at $N^* = K$, which can be shown in the following simulations:
+
+```{r}
+logistic_model <- function(r = 0.5, K = 100, N0 = 10, nsteps = 50, c = 0.5, p = 10){
+  # Define vector of time, N, and C
+  time <- c(0:nsteps)
+  N <- numeric(length = length(time))
+
+  # Assign initial population size
+  N[1] <- N0
+
+  # Start for loop to simulate population
+  for (t in 1:nsteps) {
+    N[t+1] <- N[t] + (r * N[t] * (1 - (N[t] / K))) - c * N[t]
+  }
+  # End for loop
+  
+  # Create data.frame with simulation results
+  simul <- data.frame(time, N) %>% 
+    mutate(C = c * N,
+           R = p * C)
+    
+  return(simul)
+}
+```
+
+```{r, fig.cap = "Three simulations of a logistic population growth model. The top-left graph shows a population at stable equilibrium where N0 = 0 (this is the trivial solution). The other two plots show how, independent of N0, they both reach an equilibrium at K = 100. Notice how N0 = 1 takes more time to reach equilibrium than N0 = 75"}
+  rbind(logistic_model(N = 0, c = 0),
+        logistic_model(N = 75, c = 0),
+        logistic_model(N = 1, c = 0)) %>% 
+  mutate(model = c(rep("N0 = 0", 51),
+                   rep("N0 = 75", 51),
+                   rep("N0 = 1", 51))) %>% 
+  ggplot(mapping = aes(x = time, y = N)) +
+  geom_line() +
+  geom_point(color = "steelblue", size = 2) +
+  theme_bw() +
+  facet_wrap(~model, ncol = 2)
+```
+
+# Equilibrium with harvesting
+
+With harvesting, our model becomes:
+
+$$N_{t + 1} = N_t + rN_t\left(1 - \frac{N_t}{K}\right) - cN_t$$
+
+From above, we know that We can use $N^*$ to denote the equilibrium population size at any timestep, thus rewritting the equation as:
+
+$$N^* = N^* + rN^*\left(1 - \frac{N^*}{K}\right) - cN^*$$
+
+From above, we know that the $N^*$ cancel each other out, and thus we obtain:
+
+$$rN^*\left(1 - \frac{N^*}{K}\right) - cN^* = 0$$
+
+We can separate the terms (growth and catches) to obtain:
+
+$$cN^* = rN^*\left(1 - \frac{N^*}{K}\right)$$
+
+Dividing both sides by $rN^*$:
+
+$$\frac{cN^*}{rN^*} = 1 - \frac{N^*}{K}$$
+
+The $N^*$ on the left side cancel each other out, and so we obtain:
+
+$$\frac{c}{r} = 1 - \frac{N^*}{K}$$
+
+We substract $1$ from both sides:
+
+$$\frac{c}{r} - 1 = - \frac{N^*}{K}$$
+Mutliply both sides by $-1$:
+
+$$1 - \frac{c}{r} = \frac{N^*}{K}$$
+
+And multiply both sides by $K$ to obtain:
+
+$$K\left(1 - \frac{c}{r}\right) = N^*$$
+
+Thus when we allow harvesting of the population (*i.e.* $c > 0$) the equilibrium is denoted by $N^* = K\left(1 - \frac{c}{r}\right)$. Intuitively, when $c = 0$, this becomes just $N^* = K$:
+
+$$
+\begin{split}
+N^* &= K\left(1 - \frac{c}{r}\right) \\
+N^* &= K\left(1 - \frac{0}{r}\right) \\
+N^* &= K\left(1 - 0\right) \\
+N^* &= K \\
+\end{split}
+$$
+
+We can simulate a case with $c = 0$, where the population converges to $K$, and a case with $c = 0.2$, where the population converges to 
+
+$$
+\begin{split}
+N^* &= K\left(1 - \frac{c}{r}\right) \\
+&= 100\left(1 - \frac{0.2}{0.5}\right) \\
+&= 100\left(1 - 0.4\right) \\
+&= 100(0.6) \\
+&= 60
+\end{split}
+$$
+
+Note that both simulations use $r = 0.5$
+
+```{r}
+  rbind(logistic_model(N = 20, c = 0),
+        logistic_model(N = 20, c = 0.2)) %>% 
+  mutate(model = c(rep("c = 0", 51),
+                   rep("c = 0.2", 51))) %>% 
+  ggplot(mapping = aes(x = time, y = N)) +
+  geom_line() +
+  geom_point(color = "steelblue", size = 2) +
+  theme_bw() +
+  facet_wrap(~model, ncol = 2) +
+  geom_hline(yintercept = c(100, 60), linetype = "dashed", size = 1)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

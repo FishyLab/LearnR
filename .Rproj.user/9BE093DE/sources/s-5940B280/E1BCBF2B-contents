@@ -1,0 +1,111 @@
+---
+title: "Advanced plots"
+author: "Juan Carlos Villaseñor-Derbez"
+date: "9 de julio de 2018"
+output: html_document
+---
+
+
+# Advanced ggplot
+
+## Load packages
+
+```{r}
+library(tidyverse)
+library(cowplot)
+```
+
+## Get the data
+
+```{r}
+data("diamonds")
+```
+
+# MNake a plot
+
+```{r}
+plot1 <- ggplot(data = diamonds, mapping = aes(x = carat, y = price, color = color)) +
+  geom_point(size = 2, alpha = 0.5) +
+  scale_color_viridis_d()
+```
+
+```{r}
+plot1
+```
+
+```{r}
+ggsave(plot = plot1, filename = "my_first_plot.png", width = 7, height = 4)
+```
+
+## A different plot
+
+```{r}
+plot2 <- ggplot(data = diamonds, mapping = aes(x = carat)) +
+  geom_density(n = 1000, fill = "orange", alpha = 0.5)
+```
+
+## Facet
+
+```{r}
+plot1 + 
+  facet_wrap(~cut)
+```
+
+## Put graphs together with cowplot
+
+```{r, fig.width = 4, fig.height = 6}
+both_plots <- plot_grid(plot1, plot2, ncol = 1, labels = "AUTO")
+```
+
+```{r}
+ggsave(plot = both_plots, file = "both_plots.png", width = 4, height = 6)
+```
+
+
+# Mapping with sf, and ggplot
+
+## Load rnaturalearth
+
+```{r}
+library(rnaturalearth)
+```
+
+
+```{r}
+coastline <- ne_coastline(returnclass = "sf")
+```
+
+```{r}
+continents <- ne_countries(returnclass = "sf")
+```
+
+
+```{r}
+plot3 <- ggplot(data = continents) +
+  geom_sf(fill = "gray", color = "black", size = 2) +
+  scale_x_continuous(limits = c(-95, -85)) +
+  scale_y_continuous(limits = c(15, 22))
+```
+
+```{r}
+plot_grid(plot1, plot3)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

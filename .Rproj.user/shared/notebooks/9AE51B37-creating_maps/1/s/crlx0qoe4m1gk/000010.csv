@@ -1,0 +1,8 @@
+"0","ls <- ls +"
+"0","  geom_point(x = -95, # longitude of my study area"
+"0","             y = 19, # latitude of my study area"
+"0","             shape = 22, # recall that shape 22 is a square (try running ?pch and reading through)"
+"0","             size = 10, # make the square larger"
+"0","             color = ""red"" # make the square red"
+"0","             )"
+"0","ls"

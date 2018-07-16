@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1531159751236.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "415532493",
+    "id" : "AE346EF1",
+    "lastKnownWriteTime" : 1531162543,
+    "last_content_update" : 1531710204817,
+    "path" : "~/GitHub/LearnR/correlations.Rmd",
+    "project_path" : "correlations.Rmd",
+    "properties" : {
+        "cursorPosition" : "23,42",
+        "scrollLine" : "0",
+        "tempName" : "Untitled2"
+    },
+    "relative_order" : 8,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1531166595648.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "67518A01",
+    "lastKnownWriteTime" : 1531170488,
+    "last_content_update" : 1531170488258,
+    "path" : "~/GitHub/LearnR/growth_model.Rmd",
+    "project_path" : "growth_model.Rmd",
+    "properties" : {
+        "cursorPosition" : "127,27",
+        "scrollLine" : "0",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

@@ -1,0 +1,5 @@
+"0","ss <- ggplot(data = site) +"
+"0","  geom_sf() +"
+"0","  lims(x = c(-97, -93), y = c(17, 21)) +"
+"0","  geom_point(data = my_data_for_map, mapping = aes(x = lon, y = lat, color = site), size = 4)"
+"0","ss"

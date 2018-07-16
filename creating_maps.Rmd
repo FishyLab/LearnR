@@ -1,0 +1,214 @@
+---
+title: "Creating maps with `ggplot2`, `rnaturalearth`, and `cowplot`"
+author: "Juan Carlos Villaseñor-Derbez"
+date: "July 15, 2018"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    toc_collapse: no
+    code_folding: hide
+---
+
+# Intro
+
+This is just a recap of last week's tutorial on creating maps. The objective is that, bu the end of today (Monday), you'll have your map. We'll create our maps using two sources of spatial data:
+
+1. A coastline from `rnaturalearth`
+
+2. Sampling positions from the lionfish data (**Joey, ignore this second step**)
+
+# Setup
+
+The first thing to do is to load `tidyverse` (which contains `ggplot2`), `rnaturalearth`, and `cowplot`. Recall that cowplot allows us to combine different graphs into a pannel figure.
+
+```{r}
+# Wrap library calls in a function that supresses all startup messages
+suppressPackageStartupMessages({
+  library(rnaturalearth)
+  library(cowplot)
+  library(tidyverse)
+})
+```
+
+
+# Reference map
+
+As I said, youll need two sources of data. First, lets get the coastline. In this case we'll use two different coastlines. One that has a low ressolution so we can plot Mexico "from a distance", and one with high ressolution to "zoom in" to your areas of interest. The first one is called the reference map, and will tell people where is the general location of the study. It's basically just to shpw that the study was done in Mexico (either the Yucatan or Baja Peninsulas). The other one will only show your region of interest in greater detail. For the purpose of this tutorial, and to make sure I don't give away the answers I'll be creating a map of somewhere in the Gulf of Mexico.
+
+## Get coastline for north and south america
+
+Note that I could hav especified `countries = c("canada", "united states of america", "mexico", "guatemala", ...)`, but it's just eaier to specify the entire continents.
+
+```{r}
+mex <- ne_countries(continent = c("north america", "south america"), scale = "medium", returnclass = "sf")
+```
+
+Let's visualize it just to be sure. I'll create a simple plot and store it in ls (short for large scale)
+
+```{r}
+ls <- ggplot(data = mex) +
+  geom_sf()
+
+ls
+```
+ 
+Ok, this looks about right. But we don't need this much detail. Let's zoom in to the real area of interest. We can do that by setting the x and y-axis limits. Remember that if I save a ggplot object to a variable, I can just keep adding things. From the above map, I see that I want to represent things within 120 West and 60 West. Remember that West coordinates are negative. I use `lims()` to specify the limits with a vector of two elements. The first element is the minimum and the second is the maximum.
+
+```{r}
+ls <- ls +
+  lims(x = c(-120, -60))
+
+ls
+```
+
+Ok, I've set the limits on the x-axis, but this looks horrible. Let's crop the y-axis now. I'll focus on whats between the equator and 40 North.
+
+```{r}
+ls <- ls +
+  lims(y = c(0, 40))
+
+ls
+```
+
+Now this looks way better! The reader can now know (sort of) where the study is taking place. However, for this map it's not yet clear if I'll be talking about the Pacific or Atlantic coastlines. I'll just add a square to pinpoint the general location. Remember that ggplot maps are nothing more than ggplots, and I can keep adding `geoms` or othre stuff on top.
+
+```{r}
+ls <- ls +
+  geom_point(x = -95, # longitude of my study area
+             y = 19, # latitude of my study area
+             shape = 22, # recall that shape 22 is a square (try running ?pch and reading through)
+             size = 10, # make the square larger
+             color = "red" # make the square red
+             )
+
+ls
+```
+
+
+That looks about right. Let's combine all the previous code into a single `ggplot` pipeline:
+
+```{r}
+ls <- ggplot(data = mex) +
+  geom_sf() +
+  lims(x = c(-120, -60), y = c(0, 40)) + # Note yhat you can specify x and y lims at the same time
+  geom_point(x = -95, # longitude of my study area
+             y = 19, # latitude of my study area
+             shape = 22, # recall that shape 22 is a square (try running ?pch and reading through)
+             size = 10, # make the square larger
+             color = "red" # make the square red
+             )
+
+ls
+  
+```
+
+If you want to add a `north arrow` or a `scale bar`, check out the [`ggsn` package](https://github.com/oswaldosantos/ggsn). Scroll down to see the examples.
+
+# Regional map
+
+Now lets repeat the steps above, but using a higher ressolution and plotting a smaller area. In this case I'll only load Mexico.
+
+```{r}
+site <- ne_countries(country = "mexico", returnclass = "sf", scale = "large")
+```
+
+Let's visualize it fast just to see how it looks like.
+
+```{r}
+ggplot() +
+  geom_sf(data = site)
+```
+
+## Cropping the reference map
+
+Let's now zoom in to the region of interest. In this case, I use the coordinates from above $\pm$ 2 degrees. This will depend on your case, so play with it to find your best region.
+
+```{r}
+ggplot() +
+  geom_sf(data = site) +
+  lims(x = c(-97, -93), y = c(17, 21))
+```
+
+## Adding sampling sites
+
+Let's now add the sampling points. Let's imagine I have the following table with data:
+
+```{r}
+my_data <- data.frame(site = c("A", "B", "C", "C"),
+                      lon = c(-95.3, -94.5, -94, -94),
+                      lat = c(19.1, 18.5, 20, 20),
+                      my_variable = c(1, 6, 8, 2))
+
+my_data
+```
+
+In your case, you'll load the lionfish dataset. Note that site C is repeated. In this case I don't want to plot two points (one on top of each other). To remove duplicates, I select the coulmns I care about (site, lon, and lat), and then use the function `distinct` to remove duplicates like this:
+
+```{r}
+my_data_for_map <- my_data %>% 
+  select(site, lon, lat) %>% 
+  distinct()
+
+my_data_for_map
+```
+
+The duplicate values are now gone. I can now go ahead and plot my entire regional map, saving it to ss (small scale):
+
+```{r}
+ss <- ggplot(data = site) +
+  geom_sf() +
+  lims(x = c(-97, -93), y = c(17, 21)) +
+  geom_point(data = my_data_for_map, mapping = aes(x = lon, y = lat, color = site), size = 4)
+
+ss
+```
+
+
+I can now use `cowplot` to add my regional and reference map together. I would suggest that you plot them one on top of the other, so that it fits the two-column layout of your paper better. But feel free to do what you think is better. Also, remember that you can set code chunk potions where it says `{r }`. In this case, my options are: `{r, fig.width = 6, fig.height = 8}`. You'll have to play with these until you get something that looks nice. Then you can save it to a variable and use `ggsave()` to export it, or just `knit` the Rmd file and do copy - paste from the html.
+
+```{r, fig.width = 6, fig.height = 8}
+plot_grid(ls, ss, labels = "AUTO", ncol = 1)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

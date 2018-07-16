@@ -1,0 +1,90 @@
+---
+title: "Untitled"
+author: "Juan Carlos Villaseñor-Derbez"
+date: "9 de julio de 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+T0 <- 0.11
+K <- -0.88
+Linf = 420
+```
+
+
+```{r}
+lionfish <- read.csv("data/RMP_lionfish.csv") %>% 
+  select(id, site, location, latitude, longitude, depth, temperature, total_length, total_weight) %>% 
+  mutate(logTL = log(total_length),
+         logTW = log(total_weight),
+         age = T0 + (log(1 - (total_length / Linf)) / K)) %>% 
+  distinct()
+```
+
+```{r}
+ggplot(data = lionfish, mapping = aes(x = logTL, y = logTW)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  geom_vline(xintercept = 4.5) +
+  geom_hline(yintercept = 1.9065)
+```
+
+```{r}
+cor(lionfish$logTL, lionfish$logTW)
+```
+
+```{r}
+cor.test(lionfish$logTL, lionfish$logTW)
+```
+
+## Get linear model
+
+```{r}
+lm(logTW ~ logTL, data = lionfish) %>% 
+  summary()
+```
+
+$$y = mx + b$$
+
+$$logTW = 3.235 * logTL - 12.651$$
+
+```{r, results="asis"}
+library(stargazer)
+model1 <- lm(logTW ~ logTL, data = lionfish)
+model2 <- lm(logTW ~ temperature, data = lionfish)
+
+stargazer(model1, model2, type = "html")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,8 @@
+"0","N <- lionfish %>% "
+"0","  mutate(total_s = length(unique(genus_species)),"
+"0","         total_n = length(genus_species)) %>% "
+"0","  group_by(genus_species, total_s, total_n) %>% "
+"0","  summarize(n = n()) %>% "
+"0","  ungroup() %>% "
+"0","  mutate(N = n / total_n * 100) %>% "
+"0","  select(genus_species, N)"

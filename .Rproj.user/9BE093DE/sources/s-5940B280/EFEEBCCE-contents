@@ -1,0 +1,87 @@
+---
+title: "Untitled"
+author: "Juan Carlos Villaseñor-Derbez"
+date: "9 de julio de 2018"
+output: html_document
+---
+```{r}
+library(tidyverse)
+```
+
+```{r}
+type <- c("Callinectes_sapidus", "Mysidium_spp", "Lysmata_sp", "Gonodactylus_smithii")
+
+lionfish <- read.csv("data/RMP_lionfish.csv") %>% 
+  select(id, site, location, latitude, longitude, depth, total_length, stomach_length, stomach_weight, item_no, genus_species, item_total_length, item_weight) %>% 
+  mutate(type = ifelse(genus_species %in% type, "invert", "fish"),
+         genus_species = str_replace(genus_species, pattern = "_", replacement = " ")) %>% 
+  filter(!genus_species %in% c("unid", "empty"))
+```
+
+# Some indices
+
+## Species richness by stomach
+
+```{r}
+lionfish %>% 
+  group_by(id, genus_species) %>% 
+  summarize(n = n()) %>% 
+  group_by(id) %>% 
+  summarize(n = n()) %$% 
+  mean()
+```
+
+```{r}
+lionfish %>% 
+  group_by(location, id, genus_species) %>% 
+  summarize(n = n()) %>% 
+  group_by(location, id) %>% 
+  summarize(n = n()) %>% 
+  group_by(location) %>% 
+  summarize(s = mean(n),
+            s_sd = sd(n)) %>% 
+  ggplot(mapping = aes(x = location, y = s)) +
+  geom_col(fill = "steelblue") +
+  geom_errorbar(aes(ymin = s - s_sd, ymax = s + s_sd), width = 0.2)
+```
+
+```{r}
+N <- lionfish %>% 
+  mutate(total_s = length(unique(genus_species)),
+         total_n = length(genus_species)) %>% 
+  group_by(genus_species, total_s, total_n) %>% 
+  summarize(n = n()) %>% 
+  ungroup() %>% 
+  mutate(N = n / total_n * 100) %>% 
+  select(genus_species, N)
+```
+
+```{r}
+lionfish %>% 
+  mutate(total_stomachs = length(unique(id))) %>% 
+  group_by(genus_species, id, total_stomachs) %>% 
+  summarize(n()) %>% 
+  group_by(genus_species, total_stomachs) %>% 
+  summarise(n = n()) %>% 
+  ungroup() %>% 
+  mutate(O = n  / total_stomachs * 100) %>% 
+  select(genus_species, O) %>% 
+  left_join(N, by = "genus_species") %>% 
+  mutate(MIRI = O * N) %>% 
+  arrange(desc(MIRI)) %>% 
+  mutate(rMIRI = MIRI / sum(MIRI) * 100)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+

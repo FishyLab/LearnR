@@ -1,0 +1,148 @@
+---
+title: "Population growth"
+author: "Juan Carlos Villaseñor-Derbez"
+date: "2 de julio de 2018"
+output: html_document
+---
+
+The model is:
+
+$$N_{t + 1} = N_t + rN_t(1 - \frac{N_t}{K})$$
+
+# Parameters
+
+```{r}
+r <- 0.5
+K <- 100
+N0 <- 10
+nsteps <- 20
+```
+
+# Code the model
+
+```{r}
+# Define vector of time and N
+time <- c(0:nsteps)
+N <- numeric(length = length(time))
+
+# Assign initial population size
+N[1] <- N0
+
+# Start for loop to simulate population
+for (t in 1:nsteps) {
+  N[t+1] <- N[t] + (r * N[t] * (1 - (N[t] / K)))
+}
+# End for loop
+
+# Create data.frame with simulation results
+simul <- data.frame(time, N)
+```
+
+# Plot my data
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+ggplot(data = simul, mapping = aes(x = time, y = N)) +
+  geom_line() +
+  geom_point(color = "steelblue", size = 2) +
+  theme_bw()
+```
+
+# Cerate a function
+
+```{r}
+my_fun <- function(a, b){
+  c <- a + b
+  return(c)
+}
+```
+
+```{r}
+my_fun(a = 2, b = 5)
+```
+
+```{r}
+my_fun <- function(a = 10, b = 5){
+  c <- a + b
+  return(c)
+}
+```
+
+
+# Create growth model function with catches
+
+The model with catches is
+
+$$N_{t + 1} = N_t + rN_t(1 - \frac{N_t}{K}) - cN_t$$
+
+```{r}
+logistic_model <- function(r = 1, K = 100, N0 = 10, nsteps = 50, c = 0.5, p = 10, n = 5, m = 0.2){
+  # Define vector of time, N, and C
+  time <- c(0:nsteps)
+  # N <- numeric(length = length(time))
+  N <- matrix(0, ncol = n, nrow = length(time))
+  C <- N
+
+  # Assign initial population size
+  N[1,] <- N0
+  
+  # Create pointers
+  left_pointer <- c(n, 1:(n-1))
+  right_pointer <- c(2:n, 1)
+  
+  c_mpa <- c(c, 0, 0, 0, c)
+
+  # Start for loop to simulate population
+  for (t in 1:nsteps) {
+    
+    N_in <- m * (N[t, left_pointer] + N[t, right_pointer]) / 2
+    N_out <- m * N[t,]
+    C[t, ] <- c_mpa * N[t, ]
+    
+    N[t+1,] <- N[t,] + (r * N[t,] * (1 - (N[t,] / K))) - C[t,] + N_in - N_out
+  }
+  # End for loop
+  
+  # Create a catch dataframe
+  catch_df <- data.frame(time, C) %>% 
+    gather(parcel, C, -time)
+  
+  # Create data.frame with simulation results
+  simul <- data.frame(time, N) %>% 
+    gather(parcel, N, -time) %>% 
+    left_join(catch_df, by = c("time", "parcel")) %>% 
+    mutate(R = p * C,
+           class = ifelse(parcel %in% c("X3"), "reserve", "fishng"))
+    
+  return(simul)
+}
+```
+
+```{r}
+logistic_model(m = 0.1) %>% 
+  ggplot(mapping = aes(x = time, y = N, color = class, group = parcel, size = C)) +
+  geom_line(size = 1) +
+  geom_point(alpha = 0.5) +
+  theme_bw()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

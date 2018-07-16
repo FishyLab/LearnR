@@ -1,0 +1,72 @@
+---
+title: "Intro to the tidyverse"
+author: "Juan Carlos Villaseñor-Derbez"
+date: "last update: `r Sys.Date()`"
+output: html_document
+---
+
+# Load the packages
+
+```{r}
+# Use library to load packages
+library(tidyverse)
+```
+
+```{r}
+fish <- read_csv("data/RMP_lionfish.csv", col_types = cols())
+```
+
+```{r}
+str(fish)
+```
+
+```{r}
+head(fish, n = 10)
+tail(fish)
+```
+
+# Scatter plot
+
+```{r}
+ggplot(data = fish, mapping = aes(x = total_length, y = total_weight)) +
+  geom_point(mapping = aes(fill = location), size = 3, alpha = 0.5, shape = 21) +
+  scale_color_brewer(palette = "Paired") +
+  theme_bw() +
+  labs(x = "Total Length (mm)", y = "Total Weight (gr)") +
+  ggtitle("Lionfish length-weight relationship") +
+  geom_smooth()
+```
+# Create a histogram
+
+```{r}
+ggplot(data = fish, mapping = aes(x = total_length)) +
+  geom_histogram(binwidth = 50, fill = "blue", color = "purple", size = 3) +
+  theme_linedraw()
+```
+# Create a column graph
+
+```{r}
+fish %>%
+  filter(!genus_species == "empty") %>% 
+  group_by(site, location) %>%
+  summarise(number_of_items = n()) %>% 
+  ggplot(mapping = aes(x = location, y = number_of_items, fill = site)) +
+  geom_col() +
+  theme_bw()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,5 @@
+"0","type <- c(""Callinectes_sapidus"", ""Mysidium_spp"", ""Lysmata_sp"", ""Gonodactylus_smithii"")"
+"0","lionfish <- read.csv(""data/RMP_lionfish.csv"") %>% "
+"0","  select(id, site, location, latitude, longitude, depth, total_length, stomach_length, stomach_weight, item_no, genus_species, item_total_length, item_weight) %>% "
+"0","  mutate(type = ifelse(genus_species %in% type, ""invert"", ""fish""),"
+"0","         genus_species = str_replace(genus_species, pattern = ""_"", replacement = "" ""))"

@@ -1,0 +1,7 @@
+"0","# Wrap library calls in a function that supresses all startup messages"
+"0","suppressPackageStartupMessages({"
+"0","  library(rnaturalearth)"
+"0","  library(cowplot)"
+"0","  library(tidyverse)"
+"0","})"
+"2","package ‘rnaturalearth’ was built under R version 3.5.1"
